@@ -300,6 +300,16 @@ if [ "$DEBUG" ]; then
     set -x
 fi
 
+ROOT_SEL=""
+
+if [ "$ROOT_SOL" = "none" ]; then
+    ROOT_SEL="none"
+elif [ "$ROOT_SOL" = "magisk" ]; then
+    ROOT_SEL="magisk"
+elif [ "$ROOT_SOL" = "kernelsu" ]; then
+    ROOT_SEL="kernelsu"
+fi
+
 if [ "$HAS_GAPPS" ]; then
     case "$ROOT_SOL" in
         "none")
@@ -567,12 +577,12 @@ cp ../installer/Run.bat "$WORK_DIR/wsa/$ARCH" || abort
 find "$WORK_DIR/wsa/$ARCH" -maxdepth 1 -mindepth 1 -printf "%P\n" >"$WORK_DIR/wsa/$ARCH/filelist.txt" || abort
 echo -e "done\n"
 
-if [[ "$ROOT_SOL" = "none" ]]; then
+if [[ "$ROOT_SEL" = "none" ]]; then
     name1=""
-elif [ "$ROOT_SOL" = "magisk" ]; then
+elif [ "$ROOT_SEL" = "magisk" ]; then
     name1="-with-magisk-$MAGISK_VERSION_NAME($MAGISK_VERSION_CODE)-$MAGISK_VER"
-elif [ "$ROOT_SOL" = "kernelsu" ]; then
-    name1="-with-$ROOT_SOL-$KERNELSU_VER"
+elif [ "$ROOT_SEL" = "kernelsu" ]; then
+    name1="-with-$ROOT_SEL-$KERNELSU_VER"
 fi
 if [ -z "$HAS_GAPPS" ]; then
     name2="-NoGApps"
