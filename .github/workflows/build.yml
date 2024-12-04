@@ -19,7 +19,9 @@ on:
       compressformat:
        type: string
       wsa_ver:
-        type: string 
+        type: string
+      gappsver:
+        type: string    
         
 jobs:
   build:
@@ -69,6 +71,7 @@ jobs:
           echo ${{ inputs.compressformat }}
           echo ${{ inputs.release_type }}
           echo ${{ inputs.wsa_ver }}
+          echo ${{ inputs.gappsver }}
 
       - name: Build WSA ${{ inputs.arch }} with GApps ${{ inputs.root }} 🏗️
         id: wsa

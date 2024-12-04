@@ -20,6 +20,8 @@ on:
        type: string
       wsa_ver: 
         type: string 
+      gappsver:
+        type: string  
 
         
 jobs:
@@ -69,6 +71,7 @@ jobs:
           echo ${{ inputs.amazonflag }}
           echo ${{ inputs.compressformat }}
           echo ${{ inputs.release_type }}
+          echo ${{ inputs.gappsver }}
 
       - name: Build WSA ${{ inputs.arch }} with GApps ${{ inputs.root }} 🏗️
         id: wsa
