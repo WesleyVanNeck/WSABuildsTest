@@ -145,7 +145,7 @@ jobs:
             echo "LATEST_VER_RETAIL=$LATEST_VER"
             
       - name: Replace Link in README.md for Download Links Table for the WSA ${{ env.LATEST_VER }} update
-        if: ${{ inputs.release_type }} == 'WIF'
+        if: inputs.release_type == 'WIF'
         run: python "./MagiskOnWSA/Update Check/update-downloadlinks.py"
         env:
           LINK_FOR_W11X64: ${{ env.LINK_FOR_W11X64 }}
@@ -155,7 +155,7 @@ jobs:
           LATEST_VER: ${{ env.LATEST_VER }}
 
       - name: Replace Link in README.md for Download Links Table for the WSA ${{ env.LATEST_VER }} update
-        if: ${{ inputs.release_type }} == 'retail'
+        if: inputs.release_type == 'retail'
         run: python "./MagiskOnWSA/Update Check/update-downloadlinks.py"
         env:
           LINK_FOR_W11X64: ${{ env.LINK_FOR_W11X64_RETAIL }}
@@ -327,7 +327,7 @@ jobs:
           KERNEL_SU_MSG: ${{ needs.check.outputs.KERNEL_SU_MSG }} 
 
       - name: Create Tag and Release for Windows 11 arm64 release ✍🏼
-        if: ${{ inputs.release_type }} == 'WIF'
+        if: inputs.release_type == 'WIF'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.WIN11ARM64_TAG }}
@@ -338,7 +338,7 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
 
       - name: Create Tag and Release for Windows 10 x64 release ✍🏼
-        if: ${{ inputs.release_type }} == 'WIF'
+        if: inputs.release_type == 'WIF'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.WIN10X64_TAG }}
@@ -349,7 +349,7 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
   
       - name: Create Tag and Release for Windows 11 x64 release ✍🏼
-        if: ${{ inputs.release_type }} == 'WIF'
+        if: inputs.release_type == 'WIF'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.WIN11X64_TAG }}
@@ -360,7 +360,7 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
 
       - name: Create Tag and Release for Windows 11 arm64 release ✍🏼
-        if: ${{ inputs.release_type }} == 'retail'
+        if: inputs.release_type == 'retail'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.WIN11ARM64_TAG }}
@@ -371,7 +371,7 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
 
       - name: Create Tag and Release for Windows 10 x64 release ✍🏼
-        if: ${{ inputs.release_type }} == 'retail'
+        if: inputs.release_type == 'retail'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.WIN10X64_TAG }}
@@ -382,7 +382,7 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
   
       - name: Create Tag and Release for Windows 11 x64 release ✍🏼
-        if: ${{ inputs.release_type }} == 'retail'
+        if: inputs.release_type == 'retail'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.WIN11X64_TAG }}
@@ -394,7 +394,7 @@ jobs:
 
   build_x64_no_root_gapps_remove_amazon_redfin:
     name: Build for x64 as Redfin with No Root, GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build.yml
@@ -412,7 +412,7 @@ jobs:
 
   build_x64_no_root_gapps_redfin:
     name: Build for x64 as Redfin with No Root, GApps
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build.yml
@@ -430,7 +430,7 @@ jobs:
 
   build_x64_no_root_no_gapps_remove_amazon_redfin:
     name: Build for x64 as Redfin with No Root, No GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build.yml
@@ -448,7 +448,7 @@ jobs:
 
   build_x64_no_root_no_gapps_redfin:
     name: Build for x64 as Redfin with No Root, No GApps
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build.yml
@@ -466,7 +466,7 @@ jobs:
 
   build_x64_kernelsu_gapps_remove_amazon_redfin:
     name: Build for x64 as Redfin with KernelSU, GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_old.yml
@@ -484,7 +484,7 @@ jobs:
 
   build_x64_magisk_gapps_redfin:
     name: Build for x64 as Redfin with Magisk, GApps
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build.yml
@@ -502,7 +502,7 @@ jobs:
 
   build_x64_magisk_no_gapps_remove_amazon_redfin:
     name: Build for x64 as Redfin with Magisk, No GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build.yml
@@ -520,7 +520,7 @@ jobs:
 
   build_x64_magisk_canary_gapps_remove_amazon_redfin:
     name: Build for x64 as Redfin with Magisk Canary, GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build.yml
@@ -538,7 +538,7 @@ jobs:
 
   build_arm64_no_root_gapps_remove_amazon_redfin:
     name: Build for arm64 as Redfin with No Root, GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/buildarm64.yml
@@ -556,7 +556,7 @@ jobs:
 
   build_arm64_no_root_gapps_redfin:
     name: Build for arm64 as Redfin with No Root, GApps
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/buildarm64.yml
@@ -574,7 +574,7 @@ jobs:
 
   build_arm64_no_root_no_gapps_remove_amazon_redfin:
     name: Build for arm64 as Redfin with No Root, No GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/buildarm64.yml
@@ -592,7 +592,7 @@ jobs:
 
   build_arm64_no_root_no_gapps_redfin:
     name: Build for arm64 as Redfin with No Root, No GApps
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/buildarm64.yml
@@ -610,7 +610,7 @@ jobs:
 
   build_arm64_kernelsu_gapps_remove_amazon_redfin:
     name: Build for arm64 as Redfin with KernelSU, GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_arm64_old.yml
@@ -628,7 +628,7 @@ jobs:
 
   build_arm64_magisk_gapps_redfin:
     name: Build for arm64 as Redfin with Magisk, GApps
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/buildarm64.yml
@@ -646,7 +646,7 @@ jobs:
 
   build_arm64_magisk_no_gapps_remove_amazon_redfin:
     name: Build for arm64 as Redfin with Magisk, No GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/buildarm64.yml
@@ -664,7 +664,7 @@ jobs:
 
   build_arm64_magisk_canary_gapps_remove_amazon_redfin:
     name: Build for arm64 as Redfin with Magisk Canary, GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'WIF'
+    if: inputs.release_type == 'WIF'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/buildarm64.yml
@@ -682,7 +682,7 @@ jobs:
 
   build_x64_no_root_gapps_remove_amazon_redfin_retail:
     name: Build for x64 as Redfin with No Root, GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_old.yml
@@ -700,7 +700,7 @@ jobs:
 
   build_x64_no_root_gapps_redfin_retail:
     name: Build for x64 as Redfin with No Root, GApps
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_old.yml
@@ -718,7 +718,7 @@ jobs:
 
   build_x64_no_root_no_gapps_remove_amazon_redfin_retail:
     name: Build for x64 as Redfin with No Root, No GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_old.yml
@@ -736,7 +736,7 @@ jobs:
 
   build_x64_no_root_no_gapps_redfin_retail:
     name: Build for x64 as Redfin with No Root, No GApps
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_old.yml
@@ -754,7 +754,7 @@ jobs:
 
   build_x64_kernelsu_gapps_remove_amazon_redfin_retail:
     name: Build for x64 as Redfin with KernelSU, GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_old.yml
@@ -772,7 +772,7 @@ jobs:
 
   build_x64_magisk_gapps_redfin_retail:
     name: Build for x64 as Redfin with Magisk, GApps
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_old.yml
@@ -790,7 +790,7 @@ jobs:
 
   build_x64_magisk_no_gapps_remove_amazon_redfin_retail:
     name: Build for x64 as Redfin with Magisk, No GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_old.yml
@@ -808,7 +808,7 @@ jobs:
 
   build_x64_magisk_canary_gapps_remove_amazon_redfin_retail:
     name: Build for x64 as Redfin with Magisk Canary, GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_old.yml
@@ -826,7 +826,7 @@ jobs:
 
   build_arm64_no_root_gapps_remove_amazon_redfin_retail:
     name: Build for arm64 as Redfin with No Root, GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_arm64_old.yml
@@ -844,7 +844,7 @@ jobs:
 
   build_arm64_no_root_gapps_redfin_retail:
     name: Build for arm64 as Redfin with No Root, GApps
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_arm64_old.yml
@@ -862,7 +862,7 @@ jobs:
 
   build_arm64_no_root_no_gapps_remove_amazon_redfin_retail:
     name: Build for arm64 as Redfin with No Root, No GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_arm64_old.yml
@@ -880,7 +880,7 @@ jobs:
 
   build_arm64_no_root_no_gapps_redfin_retail:
     name: Build for arm64 as Redfin with No Root, No GApps
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_arm64_old.yml
@@ -898,7 +898,7 @@ jobs:
 
   build_arm64_kernelsu_gapps_remove_amazon_redfin_retail:
     name: Build for arm64 as Redfin with KernelSU, GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_arm64_old.yml
@@ -916,7 +916,7 @@ jobs:
 
   build_arm64_magisk_gapps_redfin_retail:
     name: Build for arm64 as Redfin with Magisk, GApps
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_arm64_old.yml
@@ -934,7 +934,7 @@ jobs:
 
   build_arm64_magisk_no_gapps_remove_amazon_redfin_retail:
     name: Build for arm64 as Redfin with Magisk, No GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_arm64_old.yml
@@ -952,7 +952,7 @@ jobs:
 
   build_arm64_magisk_canary_gapps_remove_amazon_redfin_retail:
     name: Build for arm64 as Redfin with Magisk Canary, GApps and No Amazon Appstore
-    if: ${{ inputs.release_type }} == 'retail'
+    if: inputs.release_type == 'retail'
     permissions: write-all
     needs: [check, check-and-create-tag, update-downloadlinks]
     uses: ./.github/workflows/build_arm64_old.yml
