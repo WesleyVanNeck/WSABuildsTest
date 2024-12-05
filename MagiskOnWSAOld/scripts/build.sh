@@ -396,7 +396,6 @@ if [ "$GAPPS_BRAND" != "none" ] || [ "$ROOT_SOL" = "magisk" ]; then
 fi
 
 if [ "$ROOT_SOL" = "kernelsu" ]; then
-    update_ksu_zip_name
     echo "Extracting KernelSU"
     # shellcheck disable=SC1090
     source "${KERNELSU_INFO:?}" || abort
