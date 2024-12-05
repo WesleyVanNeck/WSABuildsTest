@@ -285,37 +285,18 @@ GAPPS_ZIP_NAME=MindTheGapps-$ARCH-13.0.zip
 GAPPS_PATH=$DOWNLOAD_DIR/$GAPPS_ZIP_NAME
 WSA_MAJOR_VER=0
 
-getKernelVersion() {
-    local bintype kernel_string kernel_version
-    bintype="$(file -b "$1")"
-    if [[ $bintype == *"version"* ]]; then
-        readarray -td '' kernel_string < <(awk '{ gsub(/, /,"\0"); print; }' <<<"$bintype, ")
-        unset 'kernel_string[-1]'
-        for i in "${kernel_string[@]}"; do
-            if [[ $i == *"version"* ]]; then
-                IFS=" " read -r -a kernel_string <<<"$i"
-                kernel_version="${kernel_string[1]}"
-            fi
-        done
-    else
-        IFS=" " read -r -a kernel_string <<<"$(strings "$1" | grep 'Linux version')"
-        kernel_version="${kernel_string[2]}"
-    fi
-    IFS=" " read -r -a arr <<<"${kernel_version//-/ }"
-    printf '%s' "${arr[0]}"
-}
-
 update_ksu_zip_name() {
     KERNEL_VER=""
-    if [ -f "$WORK_DIR/wsa/$ARCH/Tools/kernel" ]; then
-        KERNEL_VER=$(getKernelVersion "$WORK_DIR/wsa/$ARCH/Tools/kernel")
-    fi
+    case "$WSA_MAJOR_VER" in
+      "2308") KERNEL_VER="5.15.104.3";;
+      "2309"|"2310"|"2311"|"2407") KERNEL_VER="5.15.104.4";;
+      *) abort "KernelSU is not supported in this WSA version: $WSA_MAJOR_VER"
+    esac
     KERNELSU_ZIP_NAME=kernelsu-$ARCH-$KERNEL_VER.zip
     KERNELSU_PATH=$DOWNLOAD_DIR/$KERNELSU_ZIP_NAME
     KERNELSU_APK_PATH=$DOWNLOAD_DIR/KernelSU.apk
     KERNELSU_INFO="$KERNELSU_PATH.info"
 }
-
 update_gapps_zip_name() {
     GAPPS_ZIP_NAME=MindTheGapps-$ARCH-13.0.zip
     GAPPS_PATH=$DOWNLOAD_DIR/$GAPPS_ZIP_NAME
@@ -331,7 +312,7 @@ else
     printf "  dir=%s\n" "$DOWNLOAD_DIR" >> "$DOWNLOAD_DIR/$DOWNLOAD_CONF_NAME" || abort
     printf "  out=wsa-latest.zip\n" >> "$DOWNLOAD_DIR/$DOWNLOAD_CONF_NAME" || abort
     mkdir -p "$DOWNLOAD_DIR/xaml"
-    curl -sO "https://globalcdn.nuget.org/packages/microsoft.ui.xaml.2.8.6.nupkg" --output-dir "$DOWNLOAD_DIR/xaml"
+    curl -sO "https://globalcdn.nuget.org/packages/microsoft.ui.xaml.2.8.5.nupkg" --output-dir "$DOWNLOAD_DIR/xaml"
     7z x $DOWNLOAD_DIR/xaml/*.nupkg -o../download/ | tail -4
     mv "$DOWNLOAD_DIR/tools/AppX/$ARCH/Release/Microsoft.UI.Xaml.2.8.appx" "$xaml_PATH"
     printf "https://aka.ms/Microsoft.VCLibs.%s.14.00.Desktop.appx\n" "$ARCH" >> "$DOWNLOAD_DIR/$DOWNLOAD_CONF_NAME" || abort
@@ -396,17 +377,16 @@ if [ "$GAPPS_BRAND" != "none" ] || [ "$ROOT_SOL" = "magisk" ]; then
 fi
 
 if [ "$ROOT_SOL" = "kernelsu" ]; then
-    echo "Extracting KernelSU"
+    update_ksu_zip_name
+    echo "Extract KernelSU"
     # shellcheck disable=SC1090
     source "${KERNELSU_INFO:?}" || abort
-    echo "WSA Kernel Version: $KERNEL_VER"
-    echo "KernelSU Version: $KERNELSU_VER"
     if ! unzip "$KERNELSU_PATH" -d "$WORK_DIR/kernelsu"; then
         abort "Unzip KernelSU failed, package is corrupted?"
     fi
     if [ "$ARCH" = "x64" ]; then
         mv "$WORK_DIR/kernelsu/bzImage" "$WORK_DIR/kernelsu/kernel"
-    elif [ "$ARCH" = "arm64" ]; then
+    else
         mv "$WORK_DIR/kernelsu/Image" "$WORK_DIR/kernelsu/kernel"
     fi
     echo -e "done\n"
@@ -785,7 +765,7 @@ else
         sed -i -e 's@com.android.vending@com.amazon.venezia@g' ../installer/Install.ps1
     elif [[ "$GAPPS_BRAND" = "none" ]]; then
         sed -i -e 's@Start-Process\ "wsa://com.android.vending"@@g' ../installer/Install.ps1
-    fi
+    fi  
 fi  
 cp "../installer/$ARCH/Install.ps1" "$WORK_DIR/wsa/$ARCH" || abort
 find "$WORK_DIR/wsa/$ARCH" -not -path "*/uwp*" -not -path "*/pri*" -not -path "*/xml*" -printf "%P\n" | sed -e 's@/@\\@g' -e '/^$/d' > "$WORK_DIR/wsa/$ARCH/filelist.txt" || abort
