@@ -438,7 +438,7 @@ jobs:
       arch: x64
       root: none
       gapps: ""
-      gappsver: ""
+      gappsver: none
       amazonflag: --remove-amazon
       magiskver: stable
       devicemodel: redfin
@@ -456,7 +456,7 @@ jobs:
       arch: x64
       root: none
       gapps: ""
-      gappsver: ""
+      gappsver: none
       amazonflag: ""
       magiskver: stable
       devicemodel: redfin
@@ -510,7 +510,7 @@ jobs:
       arch: x64
       root: magisk
       gapps: ""
-      gappsver: ""
+      gappsver: none
       amazonflag: --remove-amazon
       magiskver: stable
       devicemodel: redfin
@@ -582,7 +582,7 @@ jobs:
       arch: arm64
       root: none
       gapps: ""
-      gappsver: ""
+      gappsver: none
       amazonflag: --remove-amazon
       magiskver: stable
       devicemodel: redfin
@@ -600,7 +600,7 @@ jobs:
       arch: arm64
       root: none
       gapps: ""
-      gappsver: ""
+      gappsver: none
       amazonflag: ""
       magiskver: stable
       devicemodel: redfin
@@ -654,7 +654,7 @@ jobs:
       arch: arm64
       root: magisk
       gapps: ""
-      gappsver: ""
+      gappsver: none
       amazonflag: --remove-amazon
       magiskver: stable
       devicemodel: redfin
@@ -726,7 +726,7 @@ jobs:
       arch: x64
       root: none
       gapps: ""
-      gappsver: ""
+      gappsver: none
       amazonflag: --remove-amazon
       magiskver: stable
       devicemodel: redfin
@@ -744,7 +744,7 @@ jobs:
       arch: x64
       root: none
       gapps: ""
-      gappsver: ""
+      gappsver: none
       amazonflag: ""
       magiskver: stable
       devicemodel: redfin
@@ -798,7 +798,7 @@ jobs:
       arch: x64
       root: magisk
       gapps: ""
-      gappsver: ""
+      gappsver: none
       amazonflag: --remove-amazon
       magiskver: stable
       devicemodel: redfin
@@ -870,7 +870,7 @@ jobs:
       arch: arm64
       root: none
       gapps: ""
-      gappsver: ""
+      gappsver: none
       amazonflag: --remove-amazon
       magiskver: stable
       devicemodel: redfin
@@ -888,7 +888,7 @@ jobs:
       arch: arm64
       root: none
       gapps: ""
-      gappsver: ""
+      gappsver: none
       amazonflag: ""
       magiskver: stable
       devicemodel: redfin
@@ -942,7 +942,7 @@ jobs:
       arch: arm64
       root: magisk
       gapps: ""
-      gappsver: ""
+      gappsver: none
       amazonflag: --remove-amazon
       magiskver: stable
       devicemodel: redfin
