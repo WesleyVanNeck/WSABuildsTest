@@ -56,11 +56,7 @@ process_wsa_image() {
     echo "Resizing filesystem for $image_type.img..."
     resize2fs "$WSA_PATH/$image_type.img" || abort "Failed to resize filesystem for $image_type.img"
     
-    # Step 5: Unshare blocks to make read-write
-    echo "Converting $image_type.img to read-write (unshare blocks)..."
-    e2fsck -E unshare_blocks "$WSA_PATH/$image_type.img" || abort "Failed to unshare blocks for $image_type.img"
-    
-    # Step 6: Create mount directory and mount
+    # Step 5: Create mount directory and mount
     echo "Creating mount point and mounting $image_type.img..."
     mkdir -p "$MOUNT_BASE/$image_type" || abort "Failed to create mount point for $image_type"
     sudo mount -t ext4 -o loop "$WSA_PATH/$image_type.img" "$MOUNT_BASE/$image_type" || abort "Failed to mount $image_type.img"
@@ -264,6 +260,11 @@ make_changes() {
     else
         echo "Warning: init.windows_x86_64.rc not found at $INIT_WINDOWS_RC"
     fi
+
+    # Set timestamps for all files in vendor and system mounts
+    echo "Setting timestamps for all files in vendor and system mounts..."
+    sudo find "$VENDOR_MNT" -exec touch -hamt 200901010000.00 {} \; 2>/dev/null || echo "Warning: Failed to set timestamps for some vendor files"
+    sudo find "$SYSTEM_MNT" -exec touch -hamt 200901010000.00 {} \; 2>/dev/null || echo "Warning: Failed to set timestamps for some system files"
 
     echo -e "Houdini files installation completed\n"
 }
