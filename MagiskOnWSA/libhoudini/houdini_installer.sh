@@ -111,12 +111,57 @@ finalize_wsa_image() {
     echo "$image_type image finalized successfully"
 }
 
+# Function to find correct mount paths
+find_correct_mount_paths() {
+    local base_system_mount="$MOUNT_BASE/system"
+    local base_vendor_mount="$MOUNT_BASE/vendor"
+    
+    echo "=== Verifying mount point structures ==="
+    
+    # Check system mount structure
+    echo "Checking system mount structure..."
+    if [ -d "$base_system_mount/bin" ] || [ -d "$base_system_mount/etc" ] || [ -d "$base_system_mount/lib" ]; then
+        SYSTEM_ROOT="$base_system_mount"
+        echo "Using direct system mount: $SYSTEM_ROOT"
+    elif [ -d "$base_system_mount/system/bin" ] || [ -d "$base_system_mount/system/etc" ] || [ -d "$base_system_mount/system/lib" ]; then
+        SYSTEM_ROOT="$base_system_mount/system"
+        echo "Using nested system path: $SYSTEM_ROOT"
+    else
+        echo "Warning: Could not find standard system directories. Available directories:"
+        ls -la "$base_system_mount/" 2>/dev/null || echo "Cannot list system mount contents"
+        SYSTEM_ROOT="$base_system_mount"
+        echo "Defaulting to: $SYSTEM_ROOT"
+    fi
+    
+    # Check vendor mount structure
+    echo "Checking vendor mount structure..."
+    if [ -d "$base_vendor_mount/bin" ] || [ -d "$base_vendor_mount/etc" ] || [ -d "$base_vendor_mount/lib" ]; then
+        VENDOR_ROOT="$base_vendor_mount"
+        echo "Using direct vendor mount: $VENDOR_ROOT"
+    elif [ -d "$base_vendor_mount/vendor/bin" ] || [ -d "$base_vendor_mount/vendor/etc" ] || [ -d "$base_vendor_mount/vendor/lib" ]; then
+        VENDOR_ROOT="$base_vendor_mount/vendor"
+        echo "Using nested vendor path: $VENDOR_ROOT"
+    else
+        echo "Warning: Could not find standard vendor directories. Available directories:"
+        ls -la "$base_vendor_mount/" 2>/dev/null || echo "Cannot list vendor mount contents"
+        VENDOR_ROOT="$base_vendor_mount"
+        echo "Defaulting to: $VENDOR_ROOT"
+    fi
+    
+    echo "Final paths:"
+    echo "  System root: $SYSTEM_ROOT"
+    echo "  Vendor root: $VENDOR_ROOT"
+}
+
 # Function to make changes (install Houdini)
 make_changes() {
     echo "=== Making Changes (Installing Houdini) ==="
     
-    local SYSTEM_MNT="$MOUNT_BASE/system"
-    local VENDOR_MNT="$MOUNT_BASE/vendor"
+    # Find correct mount paths first
+    find_correct_mount_paths
+    
+    local SYSTEM_MNT="$SYSTEM_ROOT"
+    local VENDOR_MNT="$VENDOR_ROOT"
     local HOUDINI_LOCAL_PATH="$(realpath ./libhoudini)"
     
     # Check if Houdini files exist
@@ -128,12 +173,46 @@ make_changes() {
     
     echo "Installing Houdini files from: $HOUDINI_LOCAL_PATH"
     
-    # Create necessary directories
+    # Verify that we can access the mount points
+    echo "Verifying mount point accessibility..."
+    if [ ! -d "$SYSTEM_MNT" ]; then
+        abort "System mount point not accessible: $SYSTEM_MNT"
+    fi
+    if [ ! -d "$VENDOR_MNT" ]; then
+        abort "Vendor mount point not accessible: $VENDOR_MNT"
+    fi
+    
+    echo "Mount points verified successfully"
+    echo "  System mount: $SYSTEM_MNT"
+    echo "  Vendor mount: $VENDOR_MNT"
+    
+    # Create necessary directories with better error handling
+    echo "Creating necessary directories..."
+    
+    # Create vendor directories with robust handling
+    sudo mkdir -p "$VENDOR_MNT/etc" || abort "Failed to create vendor etc directory"
     sudo mkdir -p "$VENDOR_MNT/etc/binfmt_misc" || abort "Failed to create binfmt_misc directory"
     sudo mkdir -p "$VENDOR_MNT/lib" || abort "Failed to create vendor lib directory"
     sudo mkdir -p "$VENDOR_MNT/lib64" || abort "Failed to create vendor lib64 directory"
     sudo mkdir -p "$VENDOR_MNT/bin" || abort "Failed to create vendor bin directory"
-    sudo mkdir -p "$SYSTEM_MNT/bin" || abort "Failed to create system bin directory"
+    
+    # Handle system bin directory more carefully
+    echo "Checking system bin directory at: $SYSTEM_MNT/bin"
+    if [ -e "$SYSTEM_MNT/bin" ]; then
+        if [ -d "$SYSTEM_MNT/bin" ]; then
+            echo "System bin directory already exists as a directory, continuing..."
+        elif [ -f "$SYSTEM_MNT/bin" ]; then
+            echo "Warning: $SYSTEM_MNT/bin exists as a file, removing it..."
+            sudo rm -f "$SYSTEM_MNT/bin" || abort "Failed to remove file blocking system bin directory creation"
+            sudo mkdir -p "$SYSTEM_MNT/bin" || abort "Failed to create system bin directory after removing file"
+        else
+            echo "Warning: $SYSTEM_MNT/bin exists as an unknown type, attempting to remove..."
+            sudo rm -rf "$SYSTEM_MNT/bin" || abort "Failed to remove item blocking system bin directory creation"
+            sudo mkdir -p "$SYSTEM_MNT/bin" || abort "Failed to create system bin directory after removing item"
+        fi
+    else
+        sudo mkdir -p "$SYSTEM_MNT/bin" || abort "Failed to create system bin directory"
+    fi
 
     # Copy binfmt_misc files from local directory
     echo "Copying binfmt_misc files from local directory..."
@@ -241,6 +320,27 @@ make_changes() {
     # Edit init.windows_x86_64.rc to add Houdini exec commands after mount bind commands
     echo "Editing init.windows_x86_64.rc for Houdini binary format registration..."
     INIT_WINDOWS_RC="$VENDOR_MNT/etc/init/init.windows_x86_64.rc"
+    
+    # Check if the init file exists, if not try alternative locations
+    if [ ! -f "$INIT_WINDOWS_RC" ]; then
+        echo "init.windows_x86_64.rc not found at $INIT_WINDOWS_RC"
+        echo "Checking alternative locations..."
+        
+        # Check if etc/init directory exists but with different file
+        if [ -d "$VENDOR_MNT/etc/init" ]; then
+            echo "Available files in $VENDOR_MNT/etc/init:"
+            ls -la "$VENDOR_MNT/etc/init/" 2>/dev/null || echo "Cannot list init directory"
+            
+            # Look for any .rc files that might contain windows or x86
+            for rc_file in "$VENDOR_MNT/etc/init"/*.rc; do
+                if [ -f "$rc_file" ] && (grep -q "windows\|x86" "$rc_file" 2>/dev/null); then
+                    echo "Found potential init file: $rc_file"
+                    INIT_WINDOWS_RC="$rc_file"
+                    break
+                fi
+            done
+        fi
+    fi
     
     if [ -f "$INIT_WINDOWS_RC" ]; then
         # Create a backup of the original file
