@@ -114,8 +114,8 @@ jobs:
           VENDOR_TARGET_SIZE=$((VENDOR_NEED_SIZE * 3 + VENDOR_IMG_SIZE))
           
           # Resize images
-          truncate -s "${SYSTEM_TARGET_SIZE}"s "$WSA_PATH/system.img"
-          truncate -s "${VENDOR_TARGET_SIZE}"s "$WSA_PATH/vendor.img"
+          truncate -s "$((SYSTEM_TARGET_SIZE * 512))" "$WSA_PATH/system.img"
+          truncate -s "$((VENDOR_TARGET_SIZE * 512))" "$WSA_PATH/vendor.img"
           
           echo -e "Expand images done\n"
           
