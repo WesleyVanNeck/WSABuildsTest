@@ -84,7 +84,7 @@ jobs:
       - name: Install Houdini and Process Images 🔧
         working-directory: MagiskOnWSA
         run: |      
-          chmod +x ./libhoudini/process_images_exact.sh
+          chmod +x ./libhoudini/houdini_installer.sh
           ./libhoudini/houdini_installer.sh "${{ steps.wsa.outputs.artifact_folder }}"
         shell: bash
 
