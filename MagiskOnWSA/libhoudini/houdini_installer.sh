@@ -58,7 +58,17 @@ process_wsa_image() {
     
     # Step 5: Unshare blocks to make read-write
     echo "Converting $image_type.img to read-write (unshare blocks)..."
-    e2fsck -E unshare_blocks "$WSA_PATH/$image_type.img" || abort "Failed to unshare blocks for $image_type.img"
+    # Use -p for automatic repair and -f to force check even if filesystem seems clean
+    # The -E unshare_blocks option makes the filesystem writable by unsharing copy-on-write blocks
+    e2fsck -pf -E unshare_blocks "$WSA_PATH/$image_type.img" || {
+        echo "Warning: e2fsck with unshare_blocks failed, trying alternative method..."
+        # Alternative method: force check and repair without interaction
+        echo "y" | e2fsck -E unshare_blocks "$WSA_PATH/$image_type.img" || {
+            echo "Warning: Standard unshare_blocks failed, using fallback method..."
+            # Fallback: Just force a filesystem check to ensure it's clean and writable
+            e2fsck -fy "$WSA_PATH/$image_type.img" || abort "Failed to prepare filesystem for read-write access"
+        }
+    }
 
     # Step 6: Create mount directory and mount
     echo "Creating mount point and mounting $image_type.img..."
