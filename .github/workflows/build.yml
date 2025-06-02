@@ -131,12 +131,34 @@ jobs:
           
           # Function to resize image
           resize_img() {
-              e2fsck -f -y "$1" || return 1
-              if [ -n "$2" ]; then
-                  truncate -s "$2" "$1" || return 1
-                  resize2fs "$1" || return 1  # Expand to fill space
+              local img_file="$1"
+              local target_size="$2"
+              
+              echo "Checking filesystem integrity for $img_file..."
+              e2fsck -f -y "$img_file" || {
+                  echo "Initial e2fsck failed, attempting forced repair..."
+                  e2fsck -fy "$img_file" || {
+                      echo "Failed to repair filesystem, attempting to continue..."
+                      return 1
+                  }
+              }
+              
+              if [ -n "$target_size" ]; then
+                  echo "Expanding $img_file to $target_size bytes..."
+                  truncate -s "$target_size" "$img_file" || return 1
+                  echo "Resizing filesystem to fill expanded image..."
+                  resize2fs "$img_file" || {
+                      echo "resize2fs failed, attempting e2fsck and retry..."
+                      e2fsck -fy "$img_file" || return 1
+                      resize2fs "$img_file" || return 1
+                  }
               else
-                  resize2fs -M "$1" || return 1  # Minimize/shrink
+                  echo "Shrinking $img_file to minimum size..."
+                  resize2fs -M "$img_file" || {
+                      echo "resize2fs -M failed, attempting e2fsck and retry..."
+                      e2fsck -fy "$img_file" || return 1
+                      resize2fs -M "$img_file" || return 1
+                  }
               fi
               return 0
           }
@@ -150,25 +172,81 @@ jobs:
           # Function to convert read-only EXT4 image to read-write (without shrinking after)
           ro_ext4_img_to_rw() {
               local img_file="$1"
+              echo "Converting $img_file from read-only to read-write..."
+              
+              # First, check and repair the filesystem
+              echo "Checking filesystem integrity before conversion..."
+              e2fsck -f -y "$img_file" || {
+                  echo "e2fsck failed, attempting forced repair..."
+                  e2fsck -fy "$img_file" || {
+                      echo "Failed to repair filesystem before conversion"
+                      return 1
+                  }
+              }
+              
+              # Get current size and create a temporary expanded size for unshare_blocks operation
               local current_size=$(du --apparent-size -sB512 "$img_file" | cut -f1)
               local temp_size=$((current_size * 2 * 512))
               
-              # Temporarily expand for the conversion process
-              resize_img "$img_file" "$temp_size" || return 1
-              e2fsck -fp -E unshare_blocks "$img_file" || return 1
+              echo "Temporarily expanding $img_file for conversion process..."
+              truncate -s "$temp_size" "$img_file" || {
+                  echo "Failed to expand image for conversion"
+                  return 1
+              }
               
-              # For vendor image with Houdini, preserve the allocated space
+              # Expand the filesystem to fill the temporary space
+              resize2fs "$img_file" || {
+                  echo "Failed to expand filesystem, attempting repair..."
+                  e2fsck -fy "$img_file" || return 1
+                  resize2fs "$img_file" || return 1
+              }
+              
+              # Convert to read-write by unsharing blocks
+              echo "Converting filesystem to read-write..."
+              e2fsck -fp -E unshare_blocks "$img_file" || {
+                  echo "unshare_blocks failed, attempting alternative method..."
+                  e2fsck -fy "$img_file" || return 1
+              }
+              
+              # Resize back to appropriate size
               if [[ "$img_file" == *"vendor.img" ]] && [ "${{ inputs.arch }}" = "x64" ]; then
-                  # Resize back to our target size, not minimized
-                  resize_img "$img_file" "$((VENDOR_TARGET_SIZE * 512))" || return 1
+                  echo "Resizing vendor.img back to target size for Houdini..."
+                  local target_size="$((VENDOR_TARGET_SIZE * 512))"
+                  truncate -s "$target_size" "$img_file" || return 1
+                  resize2fs "$img_file" || {
+                      echo "Failed to resize to target size, attempting repair..."
+                      e2fsck -fy "$img_file" || return 1
+                      resize2fs "$img_file" || return 1
+                  }
               else
-                  # For system or non-Houdini vendor, minimize
-                  resize_img "$img_file" || return 1
+                  echo "Shrinking $img_file to minimum size..."
+                  resize2fs -M "$img_file" || {
+                      echo "Failed to minimize, attempting repair..."
+                      e2fsck -fy "$img_file" || return 1
+                      resize2fs -M "$img_file" || return 1
+                  }
               fi
+              
+              # Final filesystem check
+              echo "Final filesystem check for $img_file..."
+              e2fsck -f -y "$img_file" || {
+                  echo "Warning: Final filesystem check failed, but continuing..."
+              }
+              
               return 0
           }
           
           echo "Remove read-only flag for read-only EXT4 image"
+          
+          # Add debug information before conversion
+          echo "Debug: Image information before conversion:"
+          echo "System image:"
+          file "$WSA_PATH/system.img"
+          ls -lh "$WSA_PATH/system.img"
+          echo "Vendor image:"
+          file "$WSA_PATH/vendor.img"
+          ls -lh "$WSA_PATH/vendor.img"
+          
           ro_ext4_img_to_rw "$WSA_PATH/system.img" || echo "Failed to convert system.img to read-write"
           ro_ext4_img_to_rw "$WSA_PATH/vendor.img" || echo "Failed to convert vendor.img to read-write"
           echo -e "Remove read-only flag for read-only EXT4 image done\n"
@@ -179,9 +257,37 @@ jobs:
           
           echo "Mount images"
           
+          # Final filesystem verification before mounting
+          echo "Performing final filesystem checks before mounting..."
+          e2fsck -f -y "$WSA_PATH/system.img" || {
+              echo "System image filesystem check failed, attempting repair..."
+              e2fsck -fy "$WSA_PATH/system.img" || abort "Cannot repair system.img filesystem"
+          }
+          
+          e2fsck -f -y "$WSA_PATH/vendor.img" || {
+              echo "Vendor image filesystem check failed, attempting repair..."
+              e2fsck -fy "$WSA_PATH/vendor.img" || abort "Cannot repair vendor.img filesystem"
+          }
+          
+          echo "Filesystem checks completed successfully"
+          
           sudo mkdir -p "$ROOT_MNT"
-          sudo mount -t ext4 -o loop "$WSA_PATH/system.img" "$ROOT_MNT" || abort "Failed to mount system.img"
-          sudo mount -t ext4 -o loop "$WSA_PATH/vendor.img" "$VENDOR_MNT" || abort "Failed to mount vendor.img"
+          echo "Mounting system.img..."
+          sudo mount -t ext4 -o loop "$WSA_PATH/system.img" "$ROOT_MNT" || {
+              echo "Failed to mount system.img, checking filesystem status..."
+              file "$WSA_PATH/system.img"
+              e2fsck -fy "$WSA_PATH/system.img" || true
+              abort "Failed to mount system.img"
+          }
+          
+          echo "Mounting vendor.img..."
+          sudo mount -t ext4 -o loop "$WSA_PATH/vendor.img" "$VENDOR_MNT" || {
+              echo "Failed to mount vendor.img, checking filesystem status..."
+              file "$WSA_PATH/vendor.img"
+              e2fsck -fy "$WSA_PATH/vendor.img" || true
+              sudo umount "$ROOT_MNT" || true
+              abort "Failed to mount vendor.img"
+          }
           
           echo -e "Mount done\n"
           
