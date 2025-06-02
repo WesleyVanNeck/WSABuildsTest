@@ -113,11 +113,42 @@ jobs:
           VENDOR_NEED_SIZE=1048576  # 512MB in 512-byte blocks
           VENDOR_TARGET_SIZE=$((VENDOR_NEED_SIZE * 3 + VENDOR_IMG_SIZE))
           
-          # Resize images
-          truncate -s "$((SYSTEM_TARGET_SIZE * 512))" "$WSA_PATH/system.img"
-          truncate -s "$((VENDOR_TARGET_SIZE * 512))" "$WSA_PATH/vendor.img"
+          # Function to abort with error message
+          abort() {
+              echo "Error: $1"
+              exit 1
+          }
+          
+          # Function to resize image
+          resize_img() {
+              e2fsck -f -y "$1" || return 1
+              if [ -n "$2" ]; then
+                  truncate -s "$2" "$1" || return 1
+                  resize2fs "$1" || return 1  # Expand to fill space
+              else
+                  resize2fs -M "$1" || return 1  # Minimize/shrink
+              fi
+              return 0
+          }
+          
+          # Resize images (convert blocks to bytes for truncate)
+          resize_img "$WSA_PATH/system.img" "$((SYSTEM_TARGET_SIZE * 512))" || abort "Failed to resize system.img"
+          resize_img "$WSA_PATH/vendor.img" "$((VENDOR_TARGET_SIZE * 512))" || abort "Failed to resize vendor.img"
           
           echo -e "Expand images done\n"
+          
+          # Function to convert read-only EXT4 image to read-write
+          ro_ext4_img_to_rw() {
+              resize_img "$1" "$(($(du --apparent-size -sB512 "$1" | cut -f1) * 2))"s || return 1
+              e2fsck -fp -E unshare_blocks "$1" || return 1
+              resize_img "$1" || return 1
+              return 0
+          }
+          
+          echo "Remove read-only flag for read-only EXT4 image"
+          ro_ext4_img_to_rw "$WSA_PATH/system.img" || echo "Failed to convert system.img to read-write"
+          ro_ext4_img_to_rw "$WSA_PATH/vendor.img" || echo "Failed to convert vendor.img to read-write"
+          echo -e "Remove read-only flag for read-only EXT4 image done\n"
           
           echo "Mount images"
           
@@ -284,11 +315,8 @@ jobs:
           echo -e "Umount done\n"
           
           echo "Shrink images"
-          # Use e2fsck to shrink the filesystem
-          sudo e2fsck -f -y "$WSA_PATH/system.img" || true
-          sudo resize2fs -M "$WSA_PATH/system.img" || true
-          sudo e2fsck -f -y "$WSA_PATH/vendor.img" || true
-          sudo resize2fs -M "$WSA_PATH/vendor.img" || true
+          resize_img "$WSA_PATH/system.img" || abort "Failed to shrink system.img"
+          resize_img "$WSA_PATH/vendor.img" || abort "Failed to shrink vendor.img"
           echo -e "Shrink images done\n"
           
           echo "Convert images back to vhdx"
