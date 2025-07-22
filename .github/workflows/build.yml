@@ -21,7 +21,9 @@ on:
       wsa_ver:
         type: string
       gappsver:
-        type: string    
+        type: string 
+      armtranslation:
+        type: string     
         
 jobs:
   build:
@@ -81,11 +83,16 @@ jobs:
           mkdir -p download
           ./scripts/build.sh --arch ${{ inputs.arch }} --release-type WIF --magisk-ver ${{ inputs.magiskver }} ${{ inputs.gapps }} --root-sol ${{ inputs.root }} ${{ inputs.amazonflag }} --compress-format none
 
+      - name: Copy VHDX File for ARM Translation variant generation
+        working-directory: MagiskOnWSA
+        run: |
+          cp output/${{ steps.wsa.outputs.artifact_folder }}/{system,vendor}.vhdx arm_translation/
+              
       - name: Install Houdini and Process Images 🔧
         working-directory: MagiskOnWSA
         run: |      
-          chmod +x ./libhoudini/houdini_installer.sh
-          ./libhoudini/houdini_installer.sh "${{ steps.wsa.outputs.artifact_folder }}"
+          chmod +x ./arm_translation/installer.sh
+          ./arm_translation/installer.sh --type libhoudini --source hpe-14 --dir "output/${{ steps.wsa.outputs.artifact_folder }}"
         shell: bash
 
       - name: Check Subdirectories and Directories
@@ -182,6 +189,47 @@ jobs:
           append_body: false
           tag_name: ${{ env.WSA_TAG_WIN10 }}
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Free up space  🧹
+        if: ${{ inputs.armtranslation == 'true' }}
+        run: |
+          sudo rm MagiskOnWSA/${{ steps.wsa.outputs.artifact }}.7z 
+          sudo rm MagiskOnWSA/${{ steps.wsa.outputs.artifact }}_Windows_10.7z
+          sudo rm MagiskOnWSAOld/${{ steps.wsa.outputs.artifact }}.7z 
+          sudo rm MagiskOnWSAOld/${{ steps.wsa.outputs.artifact }}_Windows_10.7z          
+          sudo rm -rf MagiskOnWSAOld/output
+          sudo rm -rf MagiskOnWSA/output
+
+      - name: Get current date
+        if: ${{ inputs.armtranslation == 'true' }}
+        id: date
+        run: |
+          echo "{currentdate}={$(date +'%d.%m.%Y')}" >> $GITHUB_OUTPUT       
+          
+      - name: Run Arm Translation Installer
+        if: ${{ inputs.armtranslation == 'true' }}
+        working-directory: MagiskOnWSA/arm_translation
+        run: |
+          chmod +x ./installer.sh
+          ./installer.sh --type libhoudini --source aow-13 --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}" 
+          ./installer.sh --type libhoudini --source libhoudini_bluestacks --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-libhoudini_bluestacks_${{ inputs.wsa_ver }}"
+          ./installer.sh --type libhoudini --source chromeos_octopus --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-chromeos_octopus_${{ inputs.wsa_ver }}"
+          ./installer.sh --type libndk --source chromeos_zork --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libndk-chromeos_zork_${{ inputs.wsa_ver }}"
+        shell: bash
+
+      - name: Upload ARM Translation Layer variants to release 🤌
+        if: ${{ inputs.armtranslation == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: | 
+            MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}.7z
+            MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_libhoudini_bluestacks_${{ inputs.wsa_ver }}.7z
+            MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_chromeos_octopus_${{ inputs.wsa_ver }}.7z
+            MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libndk_chromeos_zork_${{ inputs.wsa_ver }}.7z
+          fail_on_unmatched_files: true
+          append_body: false
+          tag_name: ARM-Translation_${{ env.currentdate }}_WSA
+          token: ${{ secrets.GITHUB_TOKEN }}  
 
 #     - name: Pass to Windows 💸
 #       uses: actions/upload-artifact@v4

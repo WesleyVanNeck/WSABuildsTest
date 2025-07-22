@@ -22,6 +22,8 @@ on:
         type: string  
       gappsver:
         type: string  
+      armtranslation:
+        type: string    
         
 jobs:
   build:
@@ -72,6 +74,7 @@ jobs:
           echo ${{ inputs.release_type }}
           echo ${{ inputs.wsa_ver }}
           echo ${{ inputs.gappsver }}
+          echo ${{ inputs.armtranslation }}
 
       - name: Build WSA ${{ inputs.arch }} with GApps ${{ inputs.root }} 🏗️
         id: wsa
@@ -86,11 +89,16 @@ jobs:
           mkdir -p download
           ./scripts/build.sh --arch ${{ inputs.arch }} --release-type latest --magisk-ver ${{ inputs.magiskver }} --gapps-brand ${{ inputs.gappsver }} --root-sol ${{ inputs.root }} --custom-model ${{ inputs.devicemodel }} ${{ inputs.amazonflag }} --compress-format ${{ inputs.compressformat }}
 
+      - name: Copy VHDX File for ARM Translation variant generation
+        working-directory: MagiskOnWSAOld
+        run: |
+          cp output/${{ steps.wsa.outputs.artifact_folder }}/{system,vendor}.vhdx arm_translation/
+              
       - name: Install Houdini and Process Images 🔧
         working-directory: MagiskOnWSAOld
         run: |      
-          chmod +x ./libhoudini/houdini_installer.sh
-          ./libhoudini/houdini_installer.sh "${{ steps.wsa.outputs.artifact_folder }}"
+          chmod +x ./arm_translation/installer.sh
+          ./arm_translation/installer.sh --type libhoudini --source hpe-14 --dir "output/${{ steps.wsa.outputs.artifact_folder }}"
         shell: bash
 
       - name: Prepare release tag 🏷️
@@ -116,12 +124,54 @@ jobs:
           echo ${{ env.WSA_VER }}
           echo ${{ env.DRIVE_FOLDER_PATH }}
           echo ${{ env.DRIVE_FOLDER_PATH_WIN10 }}    
-          
+
       - name: Pass to Windows 💸
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.wsa.outputs.artifact }}-${{ steps.wsa.outputs.built }}
-          path: MagiskOnWSAOld/output
+          path: MagiskOnWSAOld/output         
+
+      - name: Free up space  🧹
+        if: ${{ inputs.armtranslation == 'true' }}
+        run: |
+          sudo rm MagiskOnWSA/${{ steps.wsa.outputs.artifact }}.7z 
+          sudo rm MagiskOnWSA/${{ steps.wsa.outputs.artifact }}_Windows_10.7z
+          sudo rm MagiskOnWSAOld/${{ steps.wsa.outputs.artifact }}.7z 
+          sudo rm MagiskOnWSAOld/${{ steps.wsa.outputs.artifact }}_Windows_10.7z          
+          sudo rm -rf MagiskOnWSAOld/output
+          sudo rm -rf MagiskOnWSA/output
+
+      - name: Get current date
+        if: ${{ inputs.armtranslation == 'true' }}
+        id: date
+        run: |
+          echo "{currentdate}={$(date +'%d.%m.%Y')}" >> $GITHUB_OUTPUT       
+          
+      - name: Run Arm Translation Installer
+        if: ${{ inputs.armtranslation == 'true' }}
+        working-directory: MagiskOnWSAOld/arm_translation
+        run: |
+          chmod +x ./installer.sh
+          ./installer.sh --type libhoudini --source aow-13 --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}" 
+          ./installer.sh --type libhoudini --source libhoudini_bluestacks --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-libhoudini_bluestacks_${{ inputs.wsa_ver }}"
+          ./installer.sh --type libhoudini --source chromeos_octopus --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-chromeos_octopus_${{ inputs.wsa_ver }}"
+          ./installer.sh --type libndk --source chromeos_zork --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libndk-chromeos_zork_${{ inputs.wsa_ver }}"
+        shell: bash
+
+      - name: Upload ARM Translation Layer variants to release 🤌
+        if: ${{ inputs.armtranslation == 'true' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: | 
+            MagiskOnWSAOld/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}.7z
+            MagiskOnWSAOld/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_libhoudini_bluestacks_${{ inputs.wsa_ver }}.7z
+            MagiskOnWSAOld/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_chromeos_octopus_${{ inputs.wsa_ver }}.7z
+            MagiskOnWSAOld/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libndk_chromeos_zork_${{ inputs.wsa_ver }}.7z
+          fail_on_unmatched_files: true
+          append_body: false
+          tag_name: ARM-Translation_${{ env.currentdate }}_WSA
+          token: ${{ secrets.GITHUB_TOKEN }}  
+     
 
     outputs:
       zipname: ${{ steps.wsa.outputs.artifact }}

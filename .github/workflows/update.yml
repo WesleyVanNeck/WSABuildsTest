@@ -16,6 +16,9 @@ on:
           - WIF
           - retail
         description: Release Type
+      arm_translation_layer:
+        type: boolean
+        description: Include ARM Translation Layer Release  
         required: true  
 
 jobs:
@@ -337,6 +340,21 @@ jobs:
           MAGISK_STABLE_MSG: ${{ needs.check.outputs.MAGISK_STABLE_MSG }}
           KERNEL_SU_MSG: ${{ needs.check.outputs.KERNEL_SU_MSG }} 
 
+      - name: Get current date
+        id: date
+        run: |
+          echo "{currentdate}={$(date +'%d.%m.%Y')}" >> $GITHUB_OUTPUT    
+      
+      - name: Create Tag and Release for ARM Translation layer
+        if: inputs.arm_translation_layer == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ARM-Translation_${{ env.currentdate }}_WSA
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: ARM Translation Layer Variants for Windows Subsystem For Android
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}   
+
       - name: Create Tag and Release for Windows 11 arm64 release ✍🏼
         if: inputs.release_type == 'WIF'
         uses: softprops/action-gh-release@v2
@@ -418,6 +436,7 @@ jobs:
       magiskver: stable
       devicemodel: redfin
       compressformat: zip
+      armtranslation: ${{ inputs.arm_translation_layer }}
       wsa_ver: ${{ inputs.wsa_ver }}
     secrets: inherit
 
@@ -436,6 +455,7 @@ jobs:
       magiskver: stable
       devicemodel: redfin
       compressformat: zip
+      armtranslation: ${{ inputs.arm_translation_layer }}
       wsa_ver: ${{ inputs.wsa_ver }}
     secrets: inherit
 
@@ -454,6 +474,7 @@ jobs:
       magiskver: stable
       devicemodel: redfin
       compressformat: zip
+      armtranslation: ${{ inputs.arm_translation_layer }}
       wsa_ver: ${{ inputs.wsa_ver }}
     secrets: inherit
 
@@ -472,6 +493,7 @@ jobs:
       magiskver: stable
       devicemodel: redfin
       compressformat: zip
+      armtranslation: ${{ inputs.arm_translation_layer }}
       wsa_ver: ${{ inputs.wsa_ver }}
     secrets: inherit
 
@@ -490,6 +512,7 @@ jobs:
       magiskver: stable
       devicemodel: redfin
       compressformat: zip
+      armtranslation: ${{ inputs.arm_translation_layer }}
       wsa_ver: ${{ inputs.wsa_ver }}
     secrets: inherit
 
@@ -508,6 +531,7 @@ jobs:
       magiskver: stable
       devicemodel: redfin
       compressformat: zip
+      armtranslation: ${{ inputs.arm_translation_layer }}
       wsa_ver: ${{ inputs.wsa_ver }}
     secrets: inherit
 
@@ -526,6 +550,7 @@ jobs:
       magiskver: stable
       devicemodel: redfin
       compressformat: zip
+      armtranslation: ${{ inputs.arm_translation_layer }}
       wsa_ver: ${{ inputs.wsa_ver }}
     secrets: inherit
 
@@ -544,6 +569,7 @@ jobs:
       magiskver: canary
       devicemodel: redfin
       compressformat: zip
+      armtranslation: ${{ inputs.arm_translation_layer }}
       wsa_ver: ${{ inputs.wsa_ver }}
     secrets: inherit
 
@@ -706,6 +732,7 @@ jobs:
       magiskver: stable
       devicemodel: redfin
       compressformat: zip
+      armtranslation: ${{ inputs.arm_translation_layer }}
       wsa_ver: ${{ inputs.wsa_ver }}
     secrets: inherit
 
@@ -724,6 +751,7 @@ jobs:
       magiskver: stable
       devicemodel: redfin
       compressformat: zip
+      armtranslation: ${{ inputs.arm_translation_layer }}
       wsa_ver: ${{ inputs.wsa_ver }}
     secrets: inherit
 
@@ -742,6 +770,7 @@ jobs:
       magiskver: stable
       devicemodel: redfin
       compressformat: zip
+      armtranslation: ${{ inputs.arm_translation_layer }}
       wsa_ver: ${{ inputs.wsa_ver }}
     secrets: inherit
 
@@ -760,6 +789,7 @@ jobs:
       magiskver: stable
       devicemodel: redfin
       compressformat: zip
+      armtranslation: ${{ inputs.arm_translation_layer }}
       wsa_ver: ${{ inputs.wsa_ver }}
     secrets: inherit
 
@@ -778,6 +808,7 @@ jobs:
       magiskver: stable
       devicemodel: redfin
       compressformat: zip
+      armtranslation: ${{ inputs.arm_translation_layer }}
       wsa_ver: ${{ inputs.wsa_ver }}
     secrets: inherit
 
