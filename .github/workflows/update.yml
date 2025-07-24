@@ -17,8 +17,11 @@ on:
           - retail
         description: Release Type
       arm_translation_layer:
-        type: boolean
-        description: Include ARM Translation Layer Release  
+        type: choice
+        options:
+          - Include
+          - Exclude
+        description: Include ARM Translation Layer Variants 
         required: true  
 
 jobs:
@@ -338,18 +341,13 @@ jobs:
           MTG_MSG: ${{ needs.check.outputs.MTG_MSG }}
           MAGISK_CANARY_MSG: ${{ needs.check.outputs.MAGISK_CANARY_MSG }}
           MAGISK_STABLE_MSG: ${{ needs.check.outputs.MAGISK_STABLE_MSG }}
-          KERNEL_SU_MSG: ${{ needs.check.outputs.KERNEL_SU_MSG }} 
-
-      - name: Get current date
-        id: date
-        run: |
-          echo "{currentdate}={$(date +'%d.%m.%Y')}" >> $GITHUB_OUTPUT    
+          KERNEL_SU_MSG: ${{ needs.check.outputs.KERNEL_SU_MSG }}    
       
       - name: Create Tag and Release for ARM Translation layer
-        if: inputs.arm_translation_layer == 'true'
+        if: inputs.arm_translation_layer == 'Include'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ARM-Translation_${{ env.currentdate }}_WSA
+          tag_name: WSA_${{ inputs.wsa_ver }}_ARM_Translation_Layer
           token: ${{ secrets.GITHUB_TOKEN }}
           name: ARM Translation Layer Variants for Windows Subsystem For Android
         env:

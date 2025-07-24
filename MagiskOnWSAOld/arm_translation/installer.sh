@@ -7,85 +7,9 @@ set -e
 # WSA ARM Translation Installer Script
 # Supports both libndk and libhoudini translation layers with multiple sources
 
-# Function to get the script's directory location
-get_script_dir() {
-    local SOURCE="${BASH_SOURCE[0]}"
-    local DIR=""
-    
-    # Resolve symlinks
-    while [ -h "$SOURCE" ]; do
-        DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
-        SOURCE="$(readlink "$SOURCE")"
-        [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
-    done
-    
-    DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
-    echo "$DIR"
-}
-
-# Function to validate arm translation files exist
-validate_arm_translation_files() {
-    local script_dir="$1"
-    local arm_type="$2"
-    local arm_source="$3"
-    
-    local translation_path="$script_dir/$arm_type/$arm_source"
-    
-    if [ ! -d "$translation_path" ]; then
-        echo "Error: ARM translation files not found at $translation_path"
-        echo "Available directories in $script_dir:"
-        ls -la "$script_dir" 2>/dev/null || echo "  (Unable to list directory contents)"
-        
-        if [ -d "$script_dir/$arm_type" ]; then
-            echo "Available sources for $arm_type:"
-            ls -la "$script_dir/$arm_type" 2>/dev/null || echo "  (Unable to list $arm_type directory contents)"
-        else
-            echo "Directory $script_dir/$arm_type does not exist"
-        fi
-        return 1
-    fi
-    
-    echo "ARM translation files found at: $translation_path"
-    return 0
-}
-
-# Function to verify script environment and dependencies
-verify_script_environment() {
-    local script_dir="$1"
-    
-    echo "=== Script Environment Verification ==="
-    echo "Script directory: $script_dir"
-    echo "Current working directory: $(pwd)"
-    
-    # Check if we have the expected directory structure
-    if [ ! -d "$script_dir/libhoudini" ] && [ ! -d "$script_dir/libndk" ]; then
-        echo "Warning: Neither libhoudini nor libndk directories found in script location"
-        echo "Expected structure: $script_dir/{libhoudini,libndk}/"
-        echo "This may indicate the script is not in the correct location"
-        echo ""
-    fi
-    
-    # List available ARM translation types and sources
-    echo "Available ARM translation files:"
-    for arm_type in libhoudini libndk; do
-        if [ -d "$script_dir/$arm_type" ]; then
-            echo "  $arm_type sources:"
-            ls -1 "$script_dir/$arm_type" 2>/dev/null | sed 's/^/    /' || echo "    (Unable to list contents)"
-        fi
-    done
-    echo ""
-}
-
-# Get the script's directory (where arm translation files are stored)
-SCRIPT_DIR="$(get_script_dir)"
-WORK_DIR="$SCRIPT_DIR"
+# Define working directory and mount points
+WORK_DIR="$(pwd)"
 MOUNT_BASE="$WORK_DIR/mount_temp"
-
-echo "Script location: $SCRIPT_DIR"
-echo "Working directory: $WORK_DIR"
-
-# Verify the script environment
-verify_script_environment "$SCRIPT_DIR"
 
 # Default values
 ARM_TYPE=""
@@ -190,9 +114,10 @@ else
     WSA_PATH="$DIRECTORY"
 fi
 
-# Verify source files exist and validate arm translation files
+# Verify source files exist
 ARM_TRANSLATION_PATH="$WORK_DIR/$ARM_TYPE/$ARM_SOURCE"
-if ! validate_arm_translation_files "$WORK_DIR" "$ARM_TYPE" "$ARM_SOURCE"; then
+if [ ! -d "$ARM_TRANSLATION_PATH" ]; then
+    echo "Error: ARM translation files not found at $ARM_TRANSLATION_PATH"
     exit 1
 fi
 
