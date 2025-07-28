@@ -175,10 +175,10 @@ jobs:
       - name: Free up space  🧹
      #   if: ${{ inputs.armtranslation == 'Include' }}
         run: |
-          sudo rm -f MagiskOnWSA/${{ steps.wsa.outputs.artifact }}_Windows_11.7z 
-          sudo rm -f MagiskOnWSA/${{ steps.wsa.outputs.artifact }}_Windows_10.7z
-          sudo rm -f MagiskOnWSAOld/${{ steps.wsa.outputs.artifact }}_Windows_11.7z 
-          sudo rm -f MagiskOnWSAOld/${{ steps.wsa.outputs.artifact }}_Windows_10.7z          
+          sudo rm -f MagiskOnWSA/*_Windows_11.7z 
+          sudo rm -f MagiskOnWSA/*_Windows_10.7z
+          sudo rm -f MagiskOnWSAOld/*_Windows_11.7z 
+          sudo rm -f MagiskOnWSAOld/*_Windows_10.7z          
           sudo rm -rf MagiskOnWSAOld/output
           sudo rm -rf MagiskOnWSA/output  
           
