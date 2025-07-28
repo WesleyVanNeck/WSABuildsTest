@@ -193,30 +193,11 @@ jobs:
           ./installer.sh --type libndk --source chromeos_zork --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libndk-chromeos_zork_${{ inputs.wsa_ver }}"
         shell: bash
 
-      - name: Upload ARM Translation Layer 1 🤌
+      - name: Upload ARM Translation Layers 🤌
         uses: actions/upload-artifact@v4
         with:
-           name: ${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}
-           path: MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}.7z
-           
-      - name: Upload ARM Translation Layer 2 🤌
-        uses: actions/upload-artifact@v4
-        with:
-           name: ${{ steps.wsa.outputs.artifact }}-with-libndk_chromeos_zork_${{ inputs.wsa_ver }}
-           path: MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libndk_chromeos_zork_${{ inputs.wsa_ver }}.7z
-
-      - name: Upload ARM Translation Layer 3 🤌
-        uses: actions/upload-artifact@v4
-        with:
-           name: ${{ steps.wsa.outputs.artifact }}-with-libhoudini_chromeos_octopus_${{ inputs.wsa_ver }}
-           path: MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_chromeos_octopus_${{ inputs.wsa_ver }}.7z
-
-      - name: Upload ARM Translation Layer 4 🤌
-        uses: actions/upload-artifact@v4
-        with:
-           name: ${{ steps.wsa.outputs.artifact }}-with-libhoudini_libhoudini_bluestacks_${{ inputs.wsa_ver }}        
-           path: MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_libhoudini_bluestacks_${{ inputs.wsa_ver }}.7z
-
+           name: Upload ARM Translation Layers
+           path: MagiskOnWSA/arm_translation/*
 
 #     - name: Pass to Windows 💸
 #       uses: actions/upload-artifact@v4
