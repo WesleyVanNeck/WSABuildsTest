@@ -23,7 +23,7 @@ on:
       gappsver:
         type: string  
       armtranslation:
-        type: true    
+        type: string  
         
 jobs:
   build:
@@ -173,7 +173,7 @@ jobs:
             path:  MagiskOnWSA/*_Windows_10.7z
 
       - name: Free up space  🧹
-        if: ${{ inputs.armtranslation == 'Include' }}
+     #   if: ${{ inputs.armtranslation == 'Include' }}
         run: |
           sudo rm -f MagiskOnWSA/${{ steps.wsa.outputs.artifact }}_Windows_11.7z 
           sudo rm -f MagiskOnWSA/${{ steps.wsa.outputs.artifact }}_Windows_10.7z
@@ -183,7 +183,7 @@ jobs:
           sudo rm -rf MagiskOnWSA/output  
           
       - name: Run Arm Translation Installer
-        if: ${{ inputs.armtranslation == 'Include' }}
+      #  if: ${{ inputs.armtranslation == 'Include' }}
         working-directory: MagiskOnWSA/arm_translation
         run: |
           chmod +x ./installer.sh
@@ -194,7 +194,7 @@ jobs:
         shell: bash
 
       - name: Upload ARM Translation Layer variants to release 🤌
-        if: ${{ inputs.armtranslation == 'Include' }}
+       # if: ${{ inputs.armtranslation == 'Include' }}
         uses: actions/upload-artifact@v4
         with:
           files: | 
