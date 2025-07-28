@@ -196,21 +196,25 @@ jobs:
       - name: Upload ARM Translation Layer 1 🤌
         uses: actions/upload-artifact@v4
         with:
+           name: ${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}
            path: MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}.7z
            
       - name: Upload ARM Translation Layer 2 🤌
         uses: actions/upload-artifact@v4
         with:
+           name: ${{ steps.wsa.outputs.artifact }}-with-libndk_chromeos_zork_${{ inputs.wsa_ver }}
            path: MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libndk_chromeos_zork_${{ inputs.wsa_ver }}.7z
 
       - name: Upload ARM Translation Layer 3 🤌
         uses: actions/upload-artifact@v4
         with:
+           name: ${{ steps.wsa.outputs.artifact }}-with-libhoudini_chromeos_octopus_${{ inputs.wsa_ver }}
            path: MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_chromeos_octopus_${{ inputs.wsa_ver }}.7z
 
       - name: Upload ARM Translation Layer 4 🤌
         uses: actions/upload-artifact@v4
         with:
+           name: ${{ steps.wsa.outputs.artifact }}-with-libhoudini_libhoudini_bluestacks_${{ inputs.wsa_ver }}        
            path: MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_libhoudini_bluestacks_${{ inputs.wsa_ver }}.7z
 
 
