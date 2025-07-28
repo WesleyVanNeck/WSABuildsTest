@@ -1,6 +1,30 @@
 name: Auto Build function (Use for call only)
 on:
-  push:      
+  workflow_call:
+    inputs:
+      arch:
+        type: string
+      gapps:
+        type: string
+      root:
+        type: string
+      insider:
+        type: string
+      magiskver:
+        type: string
+      devicemodel:
+        type: string
+      amazonflag:
+        type: string
+      compressformat:
+       type: string
+      wsa_ver:
+        type: string
+      gappsver:
+        type: string 
+      armtranslation:
+        type: string     
+        
 jobs:
   build:
     name: Build WSA
@@ -49,7 +73,7 @@ jobs:
           echo ${{ inputs.compressformat }}
           echo ${{ inputs.release_type }}
           echo ${{ inputs.wsa_ver }}
-          echo v13.0
+          echo ${{ inputs.gappsver }}
 
       - name: Build WSA ${{ inputs.arch }} with GApps ${{ inputs.root }} 🏗️
         id: wsa
@@ -58,7 +82,7 @@ jobs:
           chmod -R 777 ./
           mkdir -p download
           ./scripts/build.sh --release-type WIF --arch x64 --install-gapps MindTheGapps --magisk-ver stable --compress-format none
-          
+
       - name: Copy VHDX File for ARM Translation variant generation
         working-directory: MagiskOnWSA
         run: |
@@ -135,7 +159,6 @@ jobs:
         working-directory: MagiskOnWSA
         run: |
           ls -lR
-
       - name: Upload Windows 11 Artifact 📦
         uses: actions/upload-artifact@v4
         with:
@@ -147,7 +170,38 @@ jobs:
         with:
             name: ${{ needs.build.outputs.artifact }}_Windows_10-compressed
             path:  MagiskOnWSA/*_Windows_10.7z
-            
+
+      - name: Free up space  🧹
+        if: ${{ inputs.armtranslation == 'Include' }}
+        run: |
+          sudo rm -f MagiskOnWSA/${{ steps.wsa.outputs.artifact }}_Windows_11.7z 
+          sudo rm -f MagiskOnWSA/${{ steps.wsa.outputs.artifact }}_Windows_10.7z
+          sudo rm -f MagiskOnWSAOld/${{ steps.wsa.outputs.artifact }}_Windows_11.7z 
+          sudo rm -f MagiskOnWSAOld/${{ steps.wsa.outputs.artifact }}_Windows_10.7z          
+          sudo rm -rf MagiskOnWSAOld/output
+          sudo rm -rf MagiskOnWSA/output  
+          
+      - name: Run Arm Translation Installer
+        if: ${{ inputs.armtranslation == 'Include' }}
+        working-directory: MagiskOnWSA/arm_translation
+        run: |
+          chmod +x ./installer.sh
+          ./installer.sh --type libhoudini --source aow-13 --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}" 
+          ./installer.sh --type libhoudini --source libhoudini_bluestacks --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-libhoudini_bluestacks_${{ inputs.wsa_ver }}"
+          ./installer.sh --type libhoudini --source chromeos_octopus --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-chromeos_octopus_${{ inputs.wsa_ver }}"
+          ./installer.sh --type libndk --source chromeos_zork --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libndk-chromeos_zork_${{ inputs.wsa_ver }}"
+        shell: bash
+
+      - name: Upload ARM Translation Layer variants to release 🤌
+        if: ${{ inputs.armtranslation == 'Include' }}
+        uses: actions/upload-artifact@v4
+        with:
+          files: | 
+            MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}.7z
+            MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_libhoudini_bluestacks_${{ inputs.wsa_ver }}.7z
+            MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_chromeos_octopus_${{ inputs.wsa_ver }}.7z
+            MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libndk_chromeos_zork_${{ inputs.wsa_ver }}.7z
+
 #     - name: Pass to Windows 💸
 #       uses: actions/upload-artifact@v4
 #       with:
