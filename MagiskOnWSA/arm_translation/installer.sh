@@ -105,7 +105,7 @@ show_usage() {
     echo "  --source chromeos_zork           AMD's libndk from ChromeOS arcvm image for 'zork' Chromebooks"
     echo ""
     echo "Sources for libhoudini:"
-    echo "  --source chromeos_volteer        Intel's libhoudini from ChromeOS arcvm image for 'volteer' Chromebooks"
+    echo "  --source chromeos_octopus        Intel's libhoudini from ChromeOS arcvm image for 'volteer' Chromebooks"
     echo "  --source hpe-14                  Intel's libhoudini from HPE image from Google Play Games for PC"
     echo "  --source aow-13                  Intel's libhoudini from Tencent's AoW Emulator"
     echo "  --source libhoudini_bluestacks   Intel's libhoudini from BlueStacks"
@@ -166,7 +166,7 @@ if [ "$ARM_TYPE" = "libndk" ]; then
     fi
 elif [ "$ARM_TYPE" = "libhoudini" ]; then
     case "$ARM_SOURCE" in
-        chromeos_volteer|hpe-14|aow-13|libhoudini_bluestacks)
+        chromeos_octopus|hpe-14|aow-13|libhoudini_bluestacks)
             ;;
         *)
             echo "Error: Invalid source for libhoudini. Must be one of: chromeos_volteer, hpe-14, aow-13, libhoudini_bluestacks"
