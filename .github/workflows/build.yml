@@ -164,7 +164,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ needs.build.outputs.artifact }}_Windows_11-compressed
-          path:  MagiskOnWSA/*_Windows_11.7z
+          path: MagiskOnWSA/*_Windows_11.7z
 
       - name: Upload Windows 10 Artifact 📦
         uses: actions/upload-artifact@v4
@@ -196,7 +196,7 @@ jobs:
        # if: ${{ inputs.armtranslation == 'Include' }}
         uses: actions/upload-artifact@v4
         with:
-          files: | 
+           path: | 
             MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}.7z
             MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_libhoudini_bluestacks_${{ inputs.wsa_ver }}.7z
             MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_chromeos_octopus_${{ inputs.wsa_ver }}.7z
