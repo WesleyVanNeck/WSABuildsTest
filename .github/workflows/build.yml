@@ -93,7 +93,7 @@ jobs:
         working-directory: MagiskOnWSA
         run: |      
           chmod +x ./arm_translation/installer.sh
-          ./arm_translation/installer.sh --type libhoudini --source libhoudini_bluestacks --dir "output/${{ steps.wsa.outputs.artifact_folder }}"
+          ./arm_translation/installer.sh --type libhoudini --source hpe-14 --dir "output/${{ steps.wsa.outputs.artifact_folder }}"
         shell: bash
 
       - name: Check Subdirectories and Directories
