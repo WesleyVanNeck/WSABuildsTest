@@ -1,30 +1,6 @@
 name: Auto Build function (Use for call only)
 on:
-  workflow_call:
-    inputs:
-      arch:
-        type: string
-      gapps:
-        type: string
-      root:
-        type: string
-      insider:
-        type: string
-      magiskver:
-        type: string
-      devicemodel:
-        type: string
-      amazonflag:
-        type: string
-      compressformat:
-       type: string
-      wsa_ver:
-        type: string
-      gappsver:
-        type: string 
-      armtranslation:
-        type: string     
-        
+  push:      
 jobs:
   build:
     name: Build WSA
@@ -73,7 +49,7 @@ jobs:
           echo ${{ inputs.compressformat }}
           echo ${{ inputs.release_type }}
           echo ${{ inputs.wsa_ver }}
-          echo ${{ inputs.gappsver }}
+          echo v13.0
 
       - name: Build WSA ${{ inputs.arch }} with GApps ${{ inputs.root }} 🏗️
         id: wsa
@@ -81,8 +57,8 @@ jobs:
         run: |
           chmod -R 777 ./
           mkdir -p download
-          ./scripts/build.sh --arch ${{ inputs.arch }} --release-type WIF --magisk-ver ${{ inputs.magiskver }} ${{ inputs.gapps }} --root-sol ${{ inputs.root }} ${{ inputs.amazonflag }} --compress-format none
-
+          ./scripts/build.sh --release-type WIF --arch x64 --install-gapps MindTheGapps --magisk-ver stable --compress-format none
+          
       - name: Copy VHDX File for ARM Translation variant generation
         working-directory: MagiskOnWSA
         run: |
@@ -103,7 +79,7 @@ jobs:
       - name: Compress artifact for Windows 11 x64 Build📦
         working-directory: MagiskOnWSA
         run: |
-          7z a -t7z -mx=6 -m0=LZMA2 -ms=on -mmt=8 -- "${{ steps.wsa.outputs.artifact }}.7z" ./output/*
+          7z a -t7z -mx=6 -m0=LZMA2 -ms=on -mmt=8 -- "${{ steps.wsa.outputs.artifact }}_Windows_11.7z" ./output/*
 
       - name: Run WSA Windows 10 Python Patch Script
         working-directory: MagiskOnWSA/output/${{ steps.wsa.outputs.artifact_folder }}
@@ -144,18 +120,6 @@ jobs:
       - name: Compress artifact for Windows 10 x64 Build📦
         working-directory: MagiskOnWSA
         run: 7z a -t7z -mx=6 -m0=LZMA2 -ms=on -mmt=8 -sdel -- "${{ steps.wsa.outputs.artifact }}_Windows_10.7z" ./output/*
-      
-      - name: Prepare release tag 🏷️
-        id: releasetag
-        run: |
-          currentver=${{ inputs.wsa_ver }}
-          folderpath="/WSABuilds/Builds/Windows Subsystem For Android™ v$currentver/Windows 11/Windows 11 x86_64"
-          folderpathwin10="/WSABuilds/Builds/Windows Subsystem For Android™ v$currentver/Windows 10/" 
-          echo "DRIVE_FOLDER_PATH=$folderpath" >> $GITHUB_ENV  
-          echo "DRIVE_FOLDER_PATH_WIN10=$folderpathwin10" >> $GITHUB_ENV 
-          echo "WSA_TAG=Windows_11_$currentver" >> $GITHUB_ENV
-          echo "WSA_TAG_WIN10=Windows_10_$currentver" >> $GITHUB_ENV
-          echo "WSA_VER=$currentver" >> $GITHUB_ENV 
 
       - name: Check GitHub ENV variables
         run: |
@@ -172,59 +136,18 @@ jobs:
         run: |
           ls -lR
 
-      - name: Upload Windows 11 x64 build to release 🤌
-        uses: softprops/action-gh-release@v2
+      - name: Upload Windows 11 Artifact 📦
+        uses: actions/upload-artifact@v4
         with:
-          files: MagiskOnWSA/${{ steps.wsa.outputs.artifact }}.7z
-          fail_on_unmatched_files: true
-          append_body: false
-          tag_name: ${{ env.WSA_TAG }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ needs.build.outputs.artifact }}_Windows_11-compressed
+          path:  MagiskOnWSA/*_Windows_11.7z
+
+      - name: Upload Windows 10 Artifact 📦
+        uses: actions/upload-artifact@v4
+        with:
+            name: ${{ needs.build.outputs.artifact }}_Windows_10-compressed
+            path:  MagiskOnWSA/*_Windows_10.7z
             
-      - name: Upload Windows 10 x64 build to release 🤌
-        uses: softprops/action-gh-release@v2
-        with:
-          files: MagiskOnWSA/${{ steps.wsa.outputs.artifact }}_Windows_10.7z
-          fail_on_unmatched_files: true
-          append_body: false
-          tag_name: ${{ env.WSA_TAG_WIN10 }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Free up space  🧹
-        if: ${{ inputs.armtranslation == 'Include' }}
-        run: |
-          sudo rm -f MagiskOnWSA/${{ steps.wsa.outputs.artifact }}.7z 
-          sudo rm -f MagiskOnWSA/${{ steps.wsa.outputs.artifact }}_Windows_10.7z
-          sudo rm -f MagiskOnWSAOld/${{ steps.wsa.outputs.artifact }}.7z 
-          sudo rm -f MagiskOnWSAOld/${{ steps.wsa.outputs.artifact }}_Windows_10.7z          
-          sudo rm -rf MagiskOnWSAOld/output
-          sudo rm -rf MagiskOnWSA/output  
-          
-      - name: Run Arm Translation Installer
-        if: ${{ inputs.armtranslation == 'Include' }}
-        working-directory: MagiskOnWSA/arm_translation
-        run: |
-          chmod +x ./installer.sh
-          ./installer.sh --type libhoudini --source aow-13 --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}" 
-          ./installer.sh --type libhoudini --source libhoudini_bluestacks --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-libhoudini_bluestacks_${{ inputs.wsa_ver }}"
-          ./installer.sh --type libhoudini --source chromeos_octopus --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-chromeos_octopus_${{ inputs.wsa_ver }}"
-          ./installer.sh --type libndk --source chromeos_zork --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libndk-chromeos_zork_${{ inputs.wsa_ver }}"
-        shell: bash
-
-      - name: Upload ARM Translation Layer variants to release 🤌
-        if: ${{ inputs.armtranslation == 'Include' }}
-        uses: softprops/action-gh-release@v2
-        with:
-          files: | 
-            MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}.7z
-            MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_libhoudini_bluestacks_${{ inputs.wsa_ver }}.7z
-            MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libhoudini_chromeos_octopus_${{ inputs.wsa_ver }}.7z
-            MagiskOnWSA/arm_translation/${{ steps.wsa.outputs.artifact }}-with-libndk_chromeos_zork_${{ inputs.wsa_ver }}.7z
-          fail_on_unmatched_files: true
-          append_body: false
-          tag_name: WSA_${{ inputs.wsa_ver }}_ARM_Translation_Layer
-          token: ${{ secrets.GITHUB_TOKEN }}  
-
 #     - name: Pass to Windows 💸
 #       uses: actions/upload-artifact@v4
 #       with:
