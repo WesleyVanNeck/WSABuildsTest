@@ -197,7 +197,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
            name: Upload ARM Translation Layers
-           path: MagiskOnWSA/arm_translation/*
+           path: MagiskOnWSA/arm_translation/*.7z
 
 #     - name: Pass to Windows 💸
 #       uses: actions/upload-artifact@v4
