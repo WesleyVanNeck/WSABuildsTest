@@ -189,7 +189,6 @@ jobs:
           chmod +x ./installer.sh
           ./installer.sh --type libhoudini --source aow-13 --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}" 
           ./installer.sh --type libhoudini --source libhoudini_bluestacks --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-libhoudini_bluestacks_${{ inputs.wsa_ver }}"
-          ./installer.sh --type libhoudini --source chromeos_octopus --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-chromeos_octopus_${{ inputs.wsa_ver }}"
           ./installer.sh --type libndk --source chromeos_zork --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libndk-chromeos_zork_${{ inputs.wsa_ver }}"
         shell: bash
 
