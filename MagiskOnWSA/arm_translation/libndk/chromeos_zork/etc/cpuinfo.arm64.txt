@@ -1,6 +1,6 @@
 processor	: 0
 BogoMIPS	: 1.00
-Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp
+Features	: fp asimd aes pmull crc32
 CPU implementer	: 0x41
 CPU architecture: 8
 CPU variant	: 0x6
@@ -9,7 +9,7 @@ CPU revision	: 13
 
 processor	: 1
 BogoMIPS	: 1.00
-Features	: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp
+Features	: fp asimd aes pmull crc32
 CPU implementer	: 0x41
 CPU architecture: 8
 CPU variant	: 0x6
