@@ -82,7 +82,7 @@ jobs:
         run: |
           chmod -R 777 ./
           mkdir -p download
-          ./scripts/build.sh --release-type WIF --arch x64 --install-gapps MindTheGapps --magisk-ver stable --compress-format none
+          ./scripts/build.sh --release-type retail --arch x64 --install-gapps MindTheGapps --magisk-ver stable --compress-format none
 
       - name: Copy VHDX File for ARM Translation variant generation
         working-directory: MagiskOnWSA
@@ -93,7 +93,7 @@ jobs:
         working-directory: MagiskOnWSA
         run: |      
           chmod +x ./arm_translation/installer.sh
-          ./arm_translation/installer.sh --type libhoudini --source hpe-14 --dir "output/${{ steps.wsa.outputs.artifact_folder }}"
+          ./arm_translation/installer.sh --type libndk --source chromeos_zork --dir "output/${{ steps.wsa.outputs.artifact_folder }}"
         shell: bash
 
       - name: Check Subdirectories and Directories
@@ -171,32 +171,6 @@ jobs:
         with:
             name: ${{ needs.build.outputs.artifact }}_Windows_10-compressed
             path:  MagiskOnWSA/*_Windows_10.7z
-
-      - name: Free up space  🧹
-     #   if: ${{ inputs.armtranslation == 'Include' }}
-        run: |
-          sudo rm -f MagiskOnWSA/*_Windows_11.7z 
-          sudo rm -f MagiskOnWSA/*_Windows_10.7z
-          sudo rm -f MagiskOnWSAOld/*_Windows_11.7z 
-          sudo rm -f MagiskOnWSAOld/*_Windows_10.7z          
-          sudo rm -rf MagiskOnWSAOld/output
-          sudo rm -rf MagiskOnWSA/output  
-          
-      - name: Run Arm Translation Installer
-      #  if: ${{ inputs.armtranslation == 'Include' }}
-        working-directory: MagiskOnWSA/arm_translation
-        run: |
-          chmod +x ./installer.sh
-          ./installer.sh --type libhoudini --source aow-13 --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-aow-13_${{ inputs.wsa_ver }}" 
-          ./installer.sh --type libhoudini --source chromeos_octopus --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libhoudini-chromeos_octopus_${{ inputs.wsa_ver }}"
-          ./installer.sh --type libndk --source chromeos_zork --dir "." --archive "${{ steps.wsa.outputs.artifact }}-with-libndk-chromeos_zork_${{ inputs.wsa_ver }}"
-        shell: bash
-
-      - name: Upload ARM Translation Layers 🤌
-        uses: actions/upload-artifact@v4
-        with:
-           name: Upload ARM Translation Layers
-           path: MagiskOnWSA/arm_translation/*.7z
 
 #     - name: Pass to Windows 💸
 #       uses: actions/upload-artifact@v4
