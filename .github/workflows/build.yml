@@ -131,7 +131,7 @@ jobs:
           xmlstarlet ed --inplace --delete "//*[local-name()='Extension' and @Category='windows.customInstall']" $xmlFile
 
           # Update the MinVersion
-          xmlstarlet ed --inplace --update "//*[local-name()='TargetDeviceFamily']/@MinVersion" -v "10.0.19041.264" $xmlFile
+          xmlstarlet ed --inplace --update "//*[local-name()='TargetDeviceFamily']/@MinVersion" -v "10.0.17763.7558" $xmlFile
 
           # Downloading modified DLL file
           echo -e "\nDownloading modified DLL file..."
