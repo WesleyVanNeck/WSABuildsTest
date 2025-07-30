@@ -82,7 +82,7 @@ jobs:
         run: |
           chmod -R 777 ./
           mkdir -p download
-          ./scripts/build.sh --release-type RP --arch x64 --install-gapps MindTheGapps --magisk-ver stable --compress-format zip
+          ./scripts/build.sh --release-type WIS --arch x64 --install-gapps MindTheGapps --magisk-ver stable --compress-format zip
 
       - name: Copy VHDX File for ARM Translation variant generation
         working-directory: MagiskOnWSA
