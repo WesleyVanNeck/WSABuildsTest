@@ -40,7 +40,7 @@ reqheaders = {
 #Catagory ID
 cat_id = '858014f3-3934-4abe-8078-4aa193e74ca8'
 
-release_type = "WIF"
+release_type = "WIS"
 
 new_version_found = False
 
