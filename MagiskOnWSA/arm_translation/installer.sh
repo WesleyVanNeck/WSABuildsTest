@@ -905,8 +905,8 @@ install_libhoudini() {
     fi
     
     # Update build.prop for BlueStacks special case
-    if [ "$ARM_SOURCE" = "libhoudini_bluestacks" ]; then
-        echo "Updating vendor build.prop for BlueStacks (using libnb.so)..."
+    if [ "$ARM_SOURCE" = "aow-13" ]; then
+        echo "Updating vendor build.prop for tencent (using libnb.so)..."
         local VENDOR_BUILD_PROP="$VENDOR_MNT/build.prop"
         if [ -f "$VENDOR_BUILD_PROP" ]; then
             sudo cp "$VENDOR_BUILD_PROP" "$VENDOR_BUILD_PROP.backup" || abort "Failed to backup vendor build.prop"
