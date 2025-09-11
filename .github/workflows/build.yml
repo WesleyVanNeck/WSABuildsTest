@@ -82,7 +82,7 @@ jobs:
         run: |
           chmod -R 777 ./
           mkdir -p download
-          ./scripts/build.sh --release-type retail --arch x64 --magisk-ver stable --remove-amazon
+          ./scripts/build.sh --release-type retail --arch x64 --magisk-ver stable --remove-amazon --install-gapps MindTheGapps
 
       - name: Copy VHDX File for ARM Translation variant generation
         working-directory: MagiskOnWSA
@@ -93,7 +93,7 @@ jobs:
         working-directory: MagiskOnWSA
         run: |      
           chmod +x ./arm_translation/installer.sh
-          ./arm_translation/installer.sh --type libhoudini --source aow-13 --dir "output/${{ steps.wsa.outputs.artifact_folder }}"
+          ./arm_translation/installer.sh --type libndk --source chromeos_zork --dir "output/${{ steps.wsa.outputs.artifact_folder }}"
         shell: bash
 
       - name: Check Subdirectories and Directories
