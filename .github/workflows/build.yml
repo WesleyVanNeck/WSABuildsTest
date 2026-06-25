@@ -5,6 +5,7 @@ on:
       arch:
         type: string
       gapps:
+      
         type: string
       root:
         type: string
